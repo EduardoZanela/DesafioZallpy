@@ -4,7 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import br.com.eduardozanela.dto.Seller;
 
 public class ReportService {
 	
@@ -21,6 +24,7 @@ public class ReportService {
 	
 	public void generateReport() {
 		List<File> readFiles = this.fileService.readFiles();
+		List<Seller> seller = new ArrayList<>();
 		for(File file : readFiles) {
 			BufferedReader reader;
 			try {
@@ -29,10 +33,9 @@ public class ReportService {
 				while (line != null) {
 					String[] splitItem = line.split(SEPARATOR);
 					if(splitItem[0].equals(SELLER_ID) && splitItem.length > 4) {
-						
+						seller.add(new Seller(splitItem[1], splitItem[2], Double.parseDouble(splitItem[3])));
 					}
-					System.out.println(line);
-					
+					System.out.println(line);					
 					line = reader.readLine();
 				}
 				reader.close();

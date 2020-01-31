@@ -23,5 +23,15 @@ public class Seller {
 	}
 	public void setSalary(Double salary) {
 		this.salary = salary;
+	}
+	
+	public Seller() {}
+	
+	public Seller(String cpf, String name, Double salary) {
+		super();
+		this.cpf = cpf;
+		this.name = name;
+		this.salary = salary;
 	}	
+	
 }
