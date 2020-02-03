@@ -37,6 +37,15 @@ public class FileService {
 	public void createFile(String fileName, String content) throws IOException {
 		Files.write(Paths.get(System.getenv(HOMEPATH_ENV_VARIABLE).concat(DATA_OUTPUT).concat(fileName).concat(".done.dat")), content.getBytes());
 	}
+	
+	public void deleteFile(String path, String fileName) {
+		try {
+			Files.delete(Paths.get(path.concat(fileName)));
+		} catch (IOException e) {
+			System.err.println("Error to delete file: " + path.concat(fileName));
+			e.printStackTrace();
+		}
+	}
 
 	public void createDirectoryIfNotExists(){
 		File output = new File(System.getenv(HOMEPATH_ENV_VARIABLE).concat(DATA_OUTPUT));
@@ -72,6 +81,7 @@ public class FileService {
 			}
 			
 		} catch (IOException | InterruptedException e) {
+			System.err.println("Error to watch files");
 			e.printStackTrace();
 		}
 	}
