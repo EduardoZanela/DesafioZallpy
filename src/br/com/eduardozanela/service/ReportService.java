@@ -1,14 +1,12 @@
 package br.com.eduardozanela.service;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 import br.com.eduardozanela.dto.Buyer;
 import br.com.eduardozanela.dto.Item;
@@ -28,16 +26,18 @@ public class ReportService {
 		this.fileService = new FileService();
 	}
 	
-	public void generateReport() {
-		List<File> readFiles = this.fileService.readFiles();
-		for(File file : readFiles) {
+	public void generateReport(String path, String fileName) {
+
 			List<Seller> sellers = new ArrayList<>();
 			List<Buyer> buyers = new ArrayList<>();
 			List<Sell> sells = new ArrayList<>();
 
-			BufferedReader reader;
+			FileReader fileReader = null;
+			BufferedReader reader = null;
 			try {
-				reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
+				fileReader = new FileReader(path.concat(fileName));
+				reader = new BufferedReader(fileReader);
+			
 				String line = reader.readLine();
 				while (line != null) {
 					String[] splitFileLine = line.split(SEPARATOR);
@@ -60,13 +60,25 @@ public class ReportService {
 					}
 					line = reader.readLine();
 				}
-				this.fileService.createFile(this.fileService.getFileNameWithoutExtension(file.getName()), createResponse(sellers, buyers, sells));
-				reader.close();
+				this.fileService.createFile(this.fileService.getFileNameWithoutExtension(fileName), createResponse(sellers, buyers, sells));
 			} catch (IOException e) {
 				e.printStackTrace();
+			} finally {
+				 if (fileReader != null) {
+			        try {
+			        	fileReader.close();
+			        } catch (IOException e) {
+			            e.printStackTrace();
+			        }
+			    }
+				 if (reader != null) {
+			        try {
+			        	reader.close();
+			        } catch (IOException e) {
+			            e.printStackTrace();
+			        }
+			    }
 			}
-		}
-		
 	}
 
 	private String createResponse(List<Seller> sellers, List<Buyer> buyers, List<Sell> sells){
@@ -74,7 +86,8 @@ public class ReportService {
 		String sellersQuantity = "Quantidade de vendedor no arquivo de entrada: " + sellers.size();
 		Map<String, Double> collect = sells.stream().collect(Collectors.toMap(a -> a.getSaleId(), sell -> sell.getItem().stream().mapToDouble(item -> item.getPrice()).sum()));
 		String saleId = collect.entrySet().stream().max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getKey();
-		String expensiveSale = "ID da venda mais cara " + saleId;
+		String expensiveSale = "ID da venda mais cara: " + saleId;
+		String worstSeller = "O pior vendedor: " + "";
 		return clientsQuantity + "\n" + sellersQuantity + "\n" + expensiveSale;
 	}
 	

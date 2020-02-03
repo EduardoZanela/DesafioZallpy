@@ -3,8 +3,14 @@ package br.com.eduardozanela.service;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,10 +18,10 @@ import java.util.List;
 public class FileService {
 	
 	private static final String FILE_EXTENTION = ".dat";
-	private static final String DATA_INPUT = "/data/in";
-	private static final String DATA_OUTPUT = "/data/out/";
+	private static final String DATA_INPUT = "\\data\\in\\";
+	private static final String DATA_OUTPUT = "\\data\\out\\";
 	private static final String HOMEPATH_ENV_VARIABLE = "HOMEPATH";
-
+	
 	public List<File> readFiles(){
 		
 		File dir = new File(System.getenv(HOMEPATH_ENV_VARIABLE).concat(DATA_INPUT));
@@ -45,5 +51,28 @@ public class FileService {
 
 	public String getFileNameWithoutExtension(String fileName){
 		return fileName.replaceFirst("[.][^.]+$", "");
+	}
+	
+	public void watchFiles() {
+		try(WatchService service = FileSystems.getDefault().newWatchService()){
+			ReportService reportService = new ReportService();
+			Path path = Paths.get(System.getenv(HOMEPATH_ENV_VARIABLE).concat(DATA_INPUT));
+			
+			WatchKey watchKey;
+			watchKey = path.register(service, StandardWatchEventKinds.ENTRY_CREATE);
+
+			while(true){
+								
+				for(WatchEvent<?> event : watchKey.pollEvents()) {
+					Path file = path.resolve((Path) event.context());
+					// Necessary because system not yet release the file lock and file is being created
+					Thread.sleep(500L);
+					reportService.generateReport(System.getenv(HOMEPATH_ENV_VARIABLE).concat(DATA_INPUT), file.getFileName().toString());
+				}
+			}
+			
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 }
